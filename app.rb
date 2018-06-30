@@ -4,7 +4,6 @@ require 'time_difference'
 
 require './models/user'
 require './models/activities'
-require './models/slack'
 require 'pry-byebug'
 
 
@@ -20,16 +19,18 @@ post '/slack/command' do
   ## find out what the user wants to do
   case params[:text].to_s.strip.downcase
   when '' #user just wants any stats and the current state
-    message = Activities.get_time_log(@slack_user)
-    "#{message}"
-  when 'start' #user wants to mark thst start of the clock
-    if @user #does the user already have clock starting
-      message = Activities.start(@slack_user)
-      content_type :json
-      {:text => "#{message}"}.to_json
-    else #wait the clock is still running - help the user
-      "The clock is already ticking!"
+    if @user
+      message = Activities.get_time_log(@slack_user)
+      "#{message}"
+    else
+      "There is no log to report"
     end
+  when 'start' #user wants to mark thst start of the clock
+    
+    message = Activities.start(@slack_user)
+    content_type :json
+    {:text => "#{message}"}.to_json
+
   when 'stop' #stop the clock we are done
     if @user #check to make sure the timer has started
       message = Activities.stop(@slack_user)
@@ -41,6 +42,10 @@ post '/slack/command' do
     end
   when 'restart' #give stats to the user
     message = Activities.restart(@slack_user)
+    content_type :json
+    {:text => "#{message}"}.to_json
+  when 'clear' #wipe out entire user
+    message = Activities.clear(@slack_user)
     content_type :json
     {:text => "#{message}"}.to_json
   when 'help' #give stats to the user
