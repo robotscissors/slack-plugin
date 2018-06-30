@@ -8,14 +8,15 @@ class Activities < ActiveRecord::Base
     #check is this a new user?
     @user = User.where(slack_identifier: slack_user[:user_id])
     #check to see what the last command was if it was start we should let the user know
-    if @user
-      @last_activity = @user.last.slack_activity
-      return "You already started the clock." if @last_activity === 'start'
-    else #create the new user log
+    if @user.empty?
       activity = "start"
       return "Time starts now! Go get'em." if self.update(slack_user, activity)
     end
-    "There was an error :boom:"
+    #check to see if the last activity is start
+    @last_activity = @user.last.slack_activity
+    return "You already started the clock." if @last_activity === 'start'
+    activity = "start" #otherwise go ahead and get started
+    return "Time starts now! Go get'em." if self.update(slack_user, activity)
   end
 
   def self.stop(slack_user)
@@ -25,7 +26,7 @@ class Activities < ActiveRecord::Base
     #create the new user log
     activity = "stop"
     if self.update(slack_user, activity)
-      "The clock has been stopped. #{self.get_time_log(slack_user)}"
+      "The clock has been stopped. \n#{self.get_time_log(slack_user)}"
     else
       "There was an error, please try again."
     end
@@ -40,7 +41,7 @@ class Activities < ActiveRecord::Base
         "The clock has been reset! Get busy!"
       end
     end
-    "It looks like the clock hasn't started yet. Use ```/SlackTrack start``` command."
+    "It looks like the clock hasn't started yet. \nUse ```/SlackTrack start``` command."
   end
 
   def self.get_time_log(slack_user)
@@ -50,9 +51,9 @@ class Activities < ActiveRecord::Base
     #what was the last command that was executed?
     @last_stop_time = User.where(slack_identifier: slack_user[:user_id], slack_activity: "stop").last
     #if there is no stop yet, or the stop time was before the start time
-    return "You're still on the clock! So far you spent: #{get_time_duration(@last_start_time.created_at,Time.now)}" if !@last_stop_time || (@last_stop_time.created_at < @last_start_time.created_at)
+    return "You're still on the clock! \nSo far you spent: \n#{get_time_duration(@last_start_time.created_at,Time.now)}" if !@last_stop_time || (@last_stop_time.created_at < @last_start_time.created_at)
     #otherwise there was a full session and you should report it
-    "Your total slack time for the last session was: #{get_time_duration(@last_start_time.created_at,@last_stop_time.created_at)}"
+    "Your total slack time for the last session was: \n#{get_time_duration(@last_start_time.created_at,@last_stop_time.created_at)}"
   end
 
   def self.clear(slack_user)
