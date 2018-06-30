@@ -1,20 +1,18 @@
 require 'sinatra'
 require 'sinatra/activerecord'
 require 'time_difference'
-
 require './models/user'
 require './models/activities'
 require 'pry-byebug'
-
+ERROR = ':boom: Error. I am sure it isn\' anything serious, but I am not sure what command you were trying. Additional commands you can use are: start, stop or restart just leave it blank for stats.'
 
 get '/' do
   'Hello there, slack user!!'
 end
 
-ERROR = ':boom: Error. I am sure it isn\' anything serious, but I am not sure what command you were trying. Additional commands you can use are: start, stop or restart just leave it blank for stats.'
 post '/slack/command' do
   @slack_user = params #get the slack ID unique identifier
-  @user = User.find_by(slack_identifier: @slack_user[:user_id]) #does the user exist?
+  @user = User.find_by(slack_identifier: @slack_user[:user_id]) #does the user exist? Find him!
   ## find out what the user wants to do
   case params[:text].to_s.strip.downcase
   when '' #user just wants any stats and the current state

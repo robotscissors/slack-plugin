@@ -1,10 +1,9 @@
 # This class contains all the activites associated with a slack user
 # it calculates start and stop time differences, produces the log
 # and inserts items into the user database.
-
 class Activities < ActiveRecord::Base
 
-  def self.start(slack_user)
+  def self.start(slack_user) #Starts the clock
     #check is this a new user?
     @user = User.where(slack_identifier: slack_user[:user_id])
     #check to see what the last command was if it was start we should let the user know
@@ -19,7 +18,7 @@ class Activities < ActiveRecord::Base
     return "Time starts now! Go get'em." if self.update(slack_user, activity)
   end
 
-  def self.stop(slack_user)
+  def self.stop(slack_user) #Stops the clock
     #check to see what the last command was if it was stop we should let the user know
     @last_activity = User.where(slack_identifier: slack_user[:user_id]).last.slack_activity
     return "You already stopped the clock" if @last_activity === 'stop'
@@ -32,7 +31,7 @@ class Activities < ActiveRecord::Base
     end
   end
 
-  def self.restart(slack_user)
+  def self.restart(slack_user) #Restarts the clock
     #lets make sure the clock needs to be reset
     @last = User.where(slack_identifier: slack_user[:user_id]).last
     if @last.slack_activity === "start"
@@ -44,7 +43,7 @@ class Activities < ActiveRecord::Base
     "It looks like the clock hasn't started yet. \nUse ```/SlackTrack start``` command."
   end
 
-  def self.get_time_log(slack_user)
+  def self.get_time_log(slack_user) #Produces the Log
     #get the last start command that was issued - that is the start_time
     @last_start_time = User.where(slack_identifier: slack_user[:user_id], slack_activity: "start").last
     return false unless @last_start_time
@@ -56,24 +55,24 @@ class Activities < ActiveRecord::Base
     "Your total slack time for the last session was: \n#{get_time_duration(@last_start_time.created_at,@last_stop_time.created_at)}"
   end
 
-  def self.clear(slack_user)
+  def self.clear(slack_user) #Removes the user's data
       return "There was an error in clearing the data" if !self.delete(slack_user[:user_id])
       "All timelogs were deleted for this user"
   end
 
-  def self.get_time_duration(start_time, end_time)
+  def self.get_time_duration(start_time, end_time) #Figures out the time duration
     TimeDifference.between(start_time, end_time).humanize
   end
 
   private
 
-  def self.update(slack_user, activity)
+  def self.update(slack_user, activity) #Updates the database
     @new_entry = User.create(slack_identifier: slack_user[:user_id], slack_command: slack_user[:command], slack_activity: activity)
     return true if @new_entry.save #let's save the new Record return true if no errors
     false
   end
 
-  def self.delete(slack_user)
+  def self.delete(slack_user) #Removes user data
     #completely removes data for user
     User.where(slack_identifier: slack_user).destroy_all
   end
