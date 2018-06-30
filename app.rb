@@ -6,11 +6,6 @@ require './models/activities'
 require './models/slack'
 require 'pry-byebug'
 
-# ActiveRecord::Base.establish_connection(
-#   :adapter => 'sqlite3',
-#   :database =>  'slack_application.sqlite3.db'
-# )
-
 get '/' do
   'Hello there, slack user!!'
 end
@@ -18,24 +13,30 @@ end
 ERROR = 'Error. I am sure it isn\' anything serious, but I am not sure what command you were trying. Additional commands you can add: start, stop or just leave it blank for stats.'
 
 post '/slack/command' do
-  @slack_identifier = params[:user_id]
-  #does the user exist?
-  @user = User.find_by(slack_identifier: @slack_identifier)
-  binding.pry
-
+  @slack_user = params #get the slack ID unique identifier
+  @user = User.find_by(slack_identifier: @slack_user[:user_id]) #does the user exist?
+  #find out what the user wants to do
   case params[:text].to_s.strip.downcase
-  when ''
+  when '' #user just wants any stats and the current state
     "nothing there"
-    # give the stats for the current user_id
-  when 'start'
-    #start the clock for the current user_id
-    Activities.start(@slack_identifier)
-    content_type :json
-    {:text => "OK, Let's start the clock"}.to_json
-  when 'stop'
-    #stop the clock for the current user_id and report back usage
-    "TIME! Ok, stopped the clock."
-  when 'time'
+  when 'start' #user wants to mark thst start of the clock
+    if !@user #does the user already have clock starting
+      if Activities.start(@slack_user)
+        content_type :json
+        {:text => "OK, Let's start the clock"}.to_json
+      else
+        "There was an error please try again"
+      end
+    else #wait the clock is still running - help the user
+      "The clock is already ticking!"
+    end
+  when 'stop' #stop the clock we are done
+    if @user #check to make sure the timer has started
+      "TIME! Ok, stopped the clock."
+    else #oops they need to start the timer before they can stop it -help user
+      "You need to start the timer first"
+    end
+  when 'time' #give stats to the user
     "Will give you the time spent."
   else
     ERROR
