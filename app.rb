@@ -15,7 +15,7 @@ ERROR = 'Error. I am sure it isn\' anything serious, but I am not sure what comm
 post '/slack/command' do
   @slack_user = params #get the slack ID unique identifier
   @user = User.find_by(slack_identifier: @slack_user[:user_id]) #does the user exist?
-  #find out what the user wants to do
+  ## find out what the user wants to do
   case params[:text].to_s.strip.downcase
   when '' #user just wants any stats and the current state
     "nothing there"
@@ -32,7 +32,11 @@ post '/slack/command' do
     end
   when 'stop' #stop the clock we are done
     if @user #check to make sure the timer has started
-      "TIME! Ok, stopped the clock."
+      if Activities.stop(@slack_user)
+        "TIME! Ok, stopped the clock."
+      else
+        "There is a problem, please try again."
+      end
     else #oops they need to start the timer before they can stop it -help user
       "You need to start the timer first"
     end

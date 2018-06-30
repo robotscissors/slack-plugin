@@ -17,6 +17,7 @@ ActiveRecord::Schema.define(version: 2018_06_30_140208) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.string "slack_command"
+    t.string "slack_activity"
   end
 
 end
