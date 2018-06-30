@@ -45,6 +45,6 @@ Since you are probably working on your local machine to test and configure the a
 
 This lightweight application will generate a URL that, once your Sinatra application is up and running, [ngrok](https://ngrok.com) will create an external URL that will allow public access. You'll need that if you want to test your application. Of course, once you move into production and use a webserver like Heroku, all you'll need is the web address of the server.
 
-Once you have downloaded ngrok at the command line, type: ngrok http 4567
+Once you have downloaded ngrok at the command line, type: ```ngrok http 4567```
 
 <img width="670" alt="screen shot 2018-05-01 at 11 52 15 am" src="https://user-images.githubusercontent.com/24664863/42128603-170bf446-7c64-11e8-95d9-c636072437af.png" text-align="center">
